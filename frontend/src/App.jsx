@@ -253,6 +253,9 @@ function App() {
   const [requestStatus, setRequestStatus] = useState('')
   const [notifications, setNotifications] = useState([])
   const [pendingRequests, setPendingRequests] = useState([])
+  // Requests the lead has decided this session — kept visible (with their
+  // outcome) since the pending endpoint only returns still-pending requests.
+  const [decidedRequests, setDecidedRequests] = useState([])
 
   // Account registration + Lead contributor-approval workflow.
   const [authScreen, setAuthScreen] = useState('login') // 'login' | 'register'
@@ -263,6 +266,8 @@ function App() {
   const [regMessage, setRegMessage] = useState('')
   const [regError, setRegError] = useState('')
   const [pendingContributors, setPendingContributors] = useState([])
+  // Contributors decided this session — kept visible with their outcome.
+  const [decidedContributors, setDecidedContributors] = useState([])
 
   const isAccountLead = user?.role === 'lead'
 
@@ -285,6 +290,19 @@ function App() {
     if (isAccountLead) loadPendingContributors()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
+
+  // Auto-dismiss the toast banners after 4 seconds.
+  useEffect(() => {
+    if (!notice) return undefined
+    const t = setTimeout(() => setNotice(''), 4000)
+    return () => clearTimeout(t)
+  }, [notice])
+
+  useEffect(() => {
+    if (!error) return undefined
+    const t = setTimeout(() => setError(''), 4000)
+    return () => clearTimeout(t)
+  }, [error])
 
   async function refreshAll() {
     if (!user || !department) return
@@ -335,9 +353,13 @@ function App() {
     }
   }
 
-  async function decideContributor(id, action) {
+  async function decideContributor(contributor, action) {
     try {
-      await jsonPost(`/contributors/${id}/${action}/`, {})
+      await jsonPost(`/contributors/${contributor.id}/${action}/`, {})
+      setDecidedContributors((prev) => [
+        { ...contributor, decidedStatus: action === 'approve' ? 'approved' : 'rejected' },
+        ...prev.filter((c) => c.id !== contributor.id),
+      ])
       await loadPendingContributors()
       setNotice(`Contributor ${action === 'approve' ? 'approved' : 'rejected'}.`)
     } catch (err) {
@@ -384,6 +406,8 @@ function App() {
     setDocuments([])
     setNotifications([])
     setPendingRequests([])
+    setDecidedRequests([])
+    setDecidedContributors([])
   }
 
   async function handleUpload(event) {
@@ -391,17 +415,16 @@ function App() {
     if (!uploadFile) return
     setError('')
     setNotice('')
-    const fileName = uploadFile.name
     setBusy(true)
     try {
       const formData = new FormData()
       formData.append('file', uploadFile)
       formData.append('department', department)
       formData.append('sensitivity', uploadSensitivity)
-      const result = await api('/documents/upload/', { method: 'POST', body: formData })
+      await api('/documents/upload/', { method: 'POST', body: formData })
       setUploadFile(null)
       event.target.reset()
-      setNotice(`✓ "${fileName}" uploaded successfully — ${result.chunk_count} chunk(s) indexed and now searchable.`)
+      setNotice('Document uploaded.')
       await refreshAll()
     } catch (err) {
       setError(`Upload failed: ${err.message}`)
@@ -477,18 +500,20 @@ function App() {
     }
   }
 
-  async function approveRequest(requestId) {
+  async function approveRequest(item) {
     try {
-      await jsonPost(`/requests/${requestId}/approve/`, { note: 'Approved by lead.' })
+      await jsonPost(`/requests/${item.id}/approve/`, { note: 'Approved by lead.' })
+      setDecidedRequests((prev) => [{ ...item, decidedStatus: 'approved' }, ...prev.filter((r) => r.id !== item.id)])
       await refreshAll()
     } catch (err) {
       setError(err.message)
     }
   }
 
-  async function rejectRequest(requestId) {
+  async function rejectRequest(item) {
     try {
-      await jsonPost(`/requests/${requestId}/reject/`, { note: 'Rejected by lead.' })
+      await jsonPost(`/requests/${item.id}/reject/`, { note: 'Rejected by lead.' })
+      setDecidedRequests((prev) => [{ ...item, decidedStatus: 'rejected' }, ...prev.filter((r) => r.id !== item.id)])
       await refreshAll()
     } catch (err) {
       setError(err.message)
@@ -720,12 +745,30 @@ function App() {
                         </div>
                       </div>
                       <div className="row-actions">
-                        <button className="primary" onClick={() => decideContributor(c.id, 'approve')}>{G.check}<span>Approve</span></button>
-                        <button className="danger" onClick={() => decideContributor(c.id, 'reject')}>{G.close}<span>Reject</span></button>
+                        <button className="primary" onClick={() => decideContributor(c, 'approve')}>{G.check}<span>Approve</span></button>
+                        <button className="danger" onClick={() => decideContributor(c, 'reject')}>{G.close}<span>Reject</span></button>
                       </div>
                     </article>
                   ))}
-                  {!pendingContributors.length ? <p className="muted">No pending contributor requests.</p> : null}
+                  {decidedContributors.map((c) => (
+                    <article key={c.id} className="request-row">
+                      <div>
+                        <strong>{c.name}</strong>
+                        <p className="muted">{c.email}</p>
+                        <div className="row-meta">
+                          <span>Requested {new Date(c.requested_at).toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div className="row-actions">
+                        <Chip tone={c.decidedStatus === 'approved' ? 'success' : 'danger'}>
+                          {c.decidedStatus === 'approved' ? 'Approved' : 'Rejected'}
+                        </Chip>
+                      </div>
+                    </article>
+                  ))}
+                  {!pendingContributors.length && !decidedContributors.length ? (
+                    <p className="muted">No pending contributor requests.</p>
+                  ) : null}
                 </div>
               </Card>
             ) : null}
@@ -825,11 +868,6 @@ function App() {
                         ))}
                       </div>
                     ) : null}
-                    {msg.insufficient ? (
-                      <button className="ghost" onClick={() => startRequest({ text: msg.question })}>
-                        {G.key}<span>Request this information</span>
-                      </button>
-                    ) : null}
                   </div>
                 </div>
               ))}
@@ -896,7 +934,7 @@ function App() {
             ) : null}
 
             <Card title="Inbox" subtitle={role === 'lead' ? 'Pending approvals + your notifications' : 'Your notifications'}>
-              {role === 'lead' && pendingRequests.length ? (
+              {role === 'lead' ? (
                 <div className="request-list">
                   {pendingRequests.map((item) => (
                     <article key={item.id} className="request-row">
@@ -910,11 +948,32 @@ function App() {
                         </div>
                       </div>
                       <div className="row-actions">
-                        <button className="primary" onClick={() => approveRequest(item.id)}>{G.check}<span>Approve</span></button>
-                        <button className="danger" onClick={() => rejectRequest(item.id)}>{G.close}<span>Reject</span></button>
+                        <button className="primary" onClick={() => approveRequest(item)}>{G.check}<span>Approve</span></button>
+                        <button className="danger" onClick={() => rejectRequest(item)}>{G.close}<span>Reject</span></button>
                       </div>
                     </article>
                   ))}
+                  {decidedRequests.map((item) => (
+                    <article key={item.id} className="request-row">
+                      <div>
+                        <strong>{item.requester}</strong>
+                        <p className="muted">{item.request_text}</p>
+                        <div className="row-meta">
+                          <span>{item.department}</span>
+                          <span>{item.document || 'No document yet'}</span>
+                          <span>{new Date(item.created_at).toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div className="row-actions">
+                        <Chip tone={item.decidedStatus === 'approved' ? 'success' : 'danger'}>
+                          {item.decidedStatus === 'approved' ? 'Approved' : 'Rejected'}
+                        </Chip>
+                      </div>
+                    </article>
+                  ))}
+                  {!pendingRequests.length && !decidedRequests.length ? (
+                    <p className="muted">No access requests.</p>
+                  ) : null}
                 </div>
               ) : null}
               <div className="request-list">
