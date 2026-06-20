@@ -28,7 +28,9 @@ services:
       QDRANT_HOST: qdrant          # talk to the qdrant service
       QDRANT_PORT: "6333"
       DJANGO_DEBUG: "True"
-      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,app"
+      # POC: reachable via localhost, 127.0.0.1, LAN IP, or hostname. Django rejects
+      # any Host not listed with a 400 "Bad Request", so allow all for local demos.
+      DJANGO_ALLOWED_HOSTS: "*"
     depends_on:
       - qdrant
     ports:

@@ -1,50 +1,94 @@
+/* ============================================================
+   AKA Portal — design tokens + base layer
+   Expressive dark (Raycast/Arc family): violet→cyan duotone,
+   frosted glass, gradient mesh, spring motion.
+   ============================================================ */
+
 :root {
-  /* Surfaces — soft, cool, neutral (Untitled UI / Stripe family) */
-  --bg: #f7f8fa;
-  --bg-tint: #fbfbfc;
-  --surface: #ffffff;
-  --surface-2: #f9fafb;
-  --surface-3: #f2f4f7;
+  color-scheme: dark;
 
-  /* Text */
-  --text: #667085;          /* muted body */
-  --text-strong: #475467;   /* secondary headings */
-  --text-h: #101828;        /* primary headings */
+  /* ---- Canvas: deep, faintly violet near-black ---- */
+  --bg: #07070d;
+  --bg-2: #0a0a13;
+  --surface: rgba(22, 22, 34, 0.72);   /* frosted glass panels */
+  --surface-solid: #14141f;
+  --surface-2: rgba(30, 30, 46, 0.6);
+  --surface-3: rgba(40, 40, 60, 0.7);
+  --surface-inset: rgba(6, 6, 12, 0.55);
+  --glass-blur: 18px;
 
-  /* Lines */
-  --border: #ebedf1;
-  --border-strong: #d7dbe2;
+  /* ---- Hairlines (alpha — read on any surface) ---- */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-glow: rgba(255, 255, 255, 0.07);
 
-  /* Brand + accents */
-  --primary: #6d3bf0;
-  --primary-strong: #5b27d6;
-  --primary-soft: #f4f0fe;
-  --primary-ring: rgba(109, 59, 240, 0.14);
-  --blue: #2e6bf0;
-  --blue-soft: #eaf1ff;
-  --emerald: #047857;
-  --emerald-soft: #e6f6ef;
-  --amber: #b54708;
-  --amber-soft: #fdf0e6;
-  --rose: #be123c;
-  --rose-soft: #fdeef1;
+  /* ---- Text ---- */
+  --text-h: #f5f4ff;
+  --text-strong: #cfcee6;
+  --text: #8b8aa3;
+  --text-faint: #5b5a72;
 
-  /* Radius */
+  /* ---- Duotone accent: violet → cyan ---- */
+  --violet: #8b7bff;
+  --violet-deep: #5b3fe0;
+  --cyan: #3ee0e6;
+  --cyan-deep: #1fb8c4;
+  --grad: linear-gradient(120deg, #9a8bff 0%, #6e5cff 45%, #34d6e0 100%);
+  --grad-soft: linear-gradient(120deg, rgba(140, 123, 255, 0.18), rgba(52, 214, 224, 0.14));
+  --grad-text: linear-gradient(110deg, #c3b6ff 0%, #8b7bff 40%, #4fdce4 100%);
+
+  --accent: #8b7bff;
+  --accent-soft: rgba(139, 123, 255, 0.14);
+  --accent-line: rgba(139, 123, 255, 0.34);
+  --accent-ring: rgba(139, 123, 255, 0.26);
+  --accent-glow: rgba(122, 100, 255, 0.5);
+  --cyan-glow: rgba(62, 224, 230, 0.4);
+
+  /* ---- Semantic ---- */
+  --success: #43e0a0;
+  --success-soft: rgba(67, 224, 160, 0.13);
+  --success-line: rgba(67, 224, 160, 0.3);
+  --warning: #f5b54a;
+  --warning-soft: rgba(245, 181, 74, 0.13);
+  --warning-line: rgba(245, 181, 74, 0.3);
+  --danger: #ff6b8a;
+  --danger-soft: rgba(255, 107, 138, 0.13);
+  --danger-line: rgba(255, 107, 138, 0.32);
+
+  /* monogram accents */
+  --mono-violet: #a99bff;  --mono-violet-bg: rgba(139, 123, 255, 0.18);
+  --mono-blue: #6cb0ff;    --mono-blue-bg: rgba(108, 176, 255, 0.16);
+  --mono-emerald: #4fe6ac; --mono-emerald-bg: rgba(67, 224, 160, 0.16);
+  --mono-amber: #f5c069;   --mono-amber-bg: rgba(245, 181, 74, 0.16);
+  --mono-rose: #ff8aa3;    --mono-rose-bg: rgba(255, 107, 138, 0.16);
+
+  /* ---- Radii ---- */
+  --r-xl: 22px;
   --r-lg: 16px;
   --r-md: 12px;
   --r-sm: 9px;
   --r-pill: 999px;
 
-  /* Elevation — hairline + soft, never heavy */
-  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.04);
-  --shadow-md: 0 4px 14px rgba(16, 24, 40, 0.06);
-  --shadow-lg: 0 20px 48px -12px rgba(16, 24, 40, 0.16);
+  /* ---- Elevation + glow ---- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 12px 34px -10px rgba(0, 0, 0, 0.62);
+  --shadow-lg: 0 40px 80px -24px rgba(0, 0, 0, 0.8);
+  --glow-accent: 0 10px 30px -8px var(--accent-glow);
 
-  --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* ---- Motion (spring-ish) ---- */
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-1: 0.16s;
+  --dur-2: 0.26s;
+  --dur-3: 0.5s;
+
+  /* ---- Type ---- */
+  --display: 'Clash Display', 'General Sans', system-ui, sans-serif;
+  --sans: 'General Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
 
   font-family: var(--sans);
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
   color: var(--text);
   background: var(--bg);
   text-rendering: optimizeLegibility;
@@ -56,10 +100,28 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+}
+
+body {
   background: var(--bg);
   color: var(--text);
+  min-height: 100svh;
+}
+
+/* Ambient base wash so the canvas never reads as flat black */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(800px 480px at 12% -8%, rgba(124, 92, 255, 0.16), transparent 60%),
+    radial-gradient(700px 420px at 100% 0%, rgba(52, 214, 224, 0.1), transparent 58%),
+    var(--bg);
 }
 
 button,
@@ -67,6 +129,7 @@ input,
 textarea,
 select {
   font: inherit;
+  color: inherit;
 }
 
 textarea {
@@ -81,57 +144,76 @@ p {
 }
 
 h1 {
+  font-family: var(--display);
   color: var(--text-h);
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.022em;
-  line-height: 1.15;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
 }
 
 h2 {
+  font-family: var(--display);
   color: var(--text-h);
-  font-size: 16px;
-  font-weight: 640;
-  letter-spacing: -0.012em;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
 }
 
 button {
   cursor: pointer;
-  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease,
-    box-shadow 0.16s ease, opacity 0.16s ease, transform 0.16s ease;
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease), box-shadow var(--dur-2) var(--ease),
+    opacity var(--dur-1) var(--ease), transform var(--dur-2) var(--spring);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--violet);
   outline-offset: 2px;
+  border-radius: 5px;
 }
 
 ::selection {
-  background: var(--primary-soft);
-  color: var(--primary-strong);
+  background: rgba(139, 123, 255, 0.32);
+  color: #fff;
 }
 
-/* Subtle, premium scrollbars */
+/* ---- icon system: duotone, gradient on active ---- */
+.ico { display: block; }
+.duo-line { stroke: currentColor; stroke-width: 1.7; fill: none; }
+.duo-fill { fill: currentColor; opacity: 0.16; }
+
+/* thin glowing scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #d4d8e0 transparent;
+  scrollbar-color: rgba(139, 123, 255, 0.3) transparent;
 }
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-thumb {
-  background: #d4d8e0;
+  background: rgba(139, 123, 255, 0.28);
   border: 3px solid transparent;
   background-clip: padding-box;
   border-radius: 999px;
 }
-*::-webkit-scrollbar-thumb:hover {
-  background: #c0c6d0;
-  background-clip: padding-box;
+*::-webkit-scrollbar-thumb:hover { background: rgba(139, 123, 255, 0.45); background-clip: padding-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

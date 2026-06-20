@@ -1,29 +1,176 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-// Decorative inline icons (visual only). Lucide-style, inherit currentColor.
-const svg = (paths) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {paths}
+// ── Bespoke duotone icon system (custom-drawn, 24px grid) ──────────────
+// `f` = soft silhouette layer, `d` = crisp outline. Both inherit color and
+// shift to a violet→cyan gradient on active/hover via CSS (url(#aka-line)).
+const Ico = ({ f, d, s = 20 }) => (
+  <svg viewBox="0 0 24 24" width={s} height={s} fill="none" aria-hidden="true" className="ico">
+    {f ? <path className="duo-fill" d={f} /> : null}
+    {(Array.isArray(d) ? d : [d]).map((p, i) => (
+      <path key={i} className="duo-line" d={p} strokeLinecap="round" strokeLinejoin="round" />
+    ))}
   </svg>
 )
+
 const ICONS = {
-  dashboard: svg(<><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /></>),
-  documents: svg(<><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" /><path d="M9 13h6M9 17h4" /></>),
-  chat: svg(<path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z" />),
-  requests: svg(<><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></>),
+  // Overview — a 4-panel grid with one live tile
+  overview: (
+    <Ico
+      f="M5.5 4.5h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z"
+      d={[
+        'M5.5 4.5h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z',
+        'M14.5 4.5h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z',
+        'M14.5 13.5h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z',
+        'M5.5 13.5h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z',
+      ]}
+    />
+  ),
+  // Library — a document with a folded corner
+  library: (
+    <Ico
+      f="M9 3.5h4.2L18 8.3V18a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2z"
+      d={[
+        'M9 3.5h4.2L18 8.3V18a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2z',
+        'M13 3.7V8h4.3',
+        'M10.5 12.5h5',
+        'M10.5 15.5h3',
+      ]}
+    />
+  ),
+  // Assistant — a chat bubble carrying an AI spark
+  assistant: (
+    <Ico
+      f="M7 4.5h10a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-2.5 2.5h-4l-4.5 3.2V14.5H7A2.5 2.5 0 0 1 4.5 12V7A2.5 2.5 0 0 1 7 4.5z"
+      d={[
+        'M7 4.5h10a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-2.5 2.5h-4l-4.5 3.2V14.5H7A2.5 2.5 0 0 1 4.5 12V7A2.5 2.5 0 0 1 7 4.5z',
+        'M12 7.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z',
+      ]}
+    />
+  ),
+  // Access — a key (governed permission), not a delivery truck
+  requests: (
+    <Ico
+      f="M15 5.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z"
+      d={[
+        'M15 5.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z',
+        'M12.6 11.4 6 18',
+        'M9.2 14.8l1.8 1.8',
+        'M6 18l1.7 1.7',
+      ]}
+    />
+  ),
 }
 
+// Inline glyphs used inside buttons / chips (inherit the element's color).
+const G = {
+  upload: (
+    <Ico s={16} f="M5.5 15.5h13v2.5a1.5 1.5 0 0 1-1.5 1.5H7a1.5 1.5 0 0 1-1.5-1.5z"
+      d={['M12 15.5V5', 'M8.2 8.8 12 5l3.8 3.8', 'M5.5 15.5v3a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5v-3']} />
+  ),
+  trash: (
+    <Ico s={16} f="M6.6 7.5h10.8l-.9 11a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8z"
+      d={['M4.5 7.5h15', 'M9.5 7.5V5.6a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5V7.5', 'M7 7.5l.9 11.2a2 2 0 0 0 2 1.8h4.2a2 2 0 0 0 2-1.8L17 7.5', 'M10.5 11v6', 'M13.5 11v6']} />
+  ),
+  key: (
+    <Ico s={16} f="M15 5.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z"
+      d={['M15 5.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z', 'M12.6 11.4 6 18', 'M9.2 14.8l1.8 1.8', 'M6 18l1.7 1.7']} />
+  ),
+  send: <Ico s={16} d={['M5 12h12.5', 'M12.5 6.5 19 12l-6.5 5.5']} />,
+  refresh: <Ico s={16} d={['M19.5 12a7.5 7.5 0 1 1-2.2-5.3', 'M19.5 4.2v3.6h-3.6']} />,
+  signout: <Ico s={15} d={['M14 5h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3', 'M10 8l-4 4 4 4', 'M6 12h9']} />,
+  check: <Ico s={16} d={['M5 12.5 10 17 19 7']} />,
+  close: <Ico s={16} d={['M7 7l10 10', 'M17 7 7 17']} />,
+  lock: (
+    <Ico s={14} f="M6.5 11h11a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1V12a1 1 0 0 1 1-1z"
+      d={['M8 11V8.5a4 4 0 0 1 8 0V11', 'M6.5 11h11a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1V12a1 1 0 0 1 1-1z']} />
+  ),
+  spark: (
+    <Ico s={14} f="M12 4l1.7 4.8 4.8 1.7-4.8 1.7L12 17l-1.7-4.8L5.5 10.5l4.8-1.7z"
+      d={['M12 4l1.7 4.8 4.8 1.7-4.8 1.7L12 17l-1.7-4.8L5.5 10.5l4.8-1.7z']} />
+  ),
+}
+
+// Gradient defs referenced by icons / brand mark (rendered once, invisibly).
+const GradientDefs = () => (
+  <svg width="0" height="0" aria-hidden="true" style={{ position: 'absolute' }}>
+    <defs>
+      <linearGradient id="aka-line" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#a78bff" />
+        <stop offset="1" stopColor="#3ee0e6" />
+      </linearGradient>
+      <radialGradient id="aka-orb" cx="0.34" cy="0.28" r="0.85">
+        <stop offset="0" stopColor="#c5b3ff" />
+        <stop offset="0.5" stopColor="#7c5cff" />
+        <stop offset="1" stopColor="#23c8d6" />
+      </radialGradient>
+    </defs>
+  </svg>
+)
+
+// Orbital orb — the AKA brand mark (replaces the old text-in-a-box logo).
+const BrandMark = ({ size = 38 }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true" className="brandmark">
+    <circle cx="20" cy="20" r="13" fill="url(#aka-orb)" opacity="0.22" />
+    <circle cx="20" cy="20" r="13" stroke="url(#aka-line)" strokeWidth="1.5" />
+    <circle cx="20" cy="20" r="5.4" fill="url(#aka-orb)" />
+    <ellipse cx="20" cy="20" rx="17.5" ry="7" stroke="url(#aka-line)" strokeWidth="1.3" opacity="0.65" transform="rotate(-26 20 20)" />
+    <circle cx="33.6" cy="13" r="2.2" fill="#52e8ea" />
+  </svg>
+)
+
+// Orbital spark — the AI assistant's avatar (replaces the literal text "AKA").
+const AssistantMark = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="3.8" fill="url(#aka-orb)" />
+    <ellipse cx="12" cy="12" rx="9" ry="3.8" stroke="url(#aka-line)" strokeWidth="1.4" opacity="0.85" transform="rotate(-28 12 12)" />
+    <circle cx="19.5" cy="7.6" r="1.5" fill="#52e8ea" />
+  </svg>
+)
+
 const NAV_ITEMS = [
-  { key: 'dashboard', label: 'Dashboard', icon: ICONS.dashboard },
-  { key: 'documents', label: 'Documents', icon: ICONS.documents },
-  { key: 'chat', label: 'Chat', icon: ICONS.chat },
-  { key: 'requests', label: 'Requests', icon: ICONS.requests },
+  { key: 'dashboard', label: 'Overview', icon: ICONS.overview },
+  { key: 'documents', label: 'Library', icon: ICONS.library },
+  { key: 'chat', label: 'Assistant', icon: ICONS.assistant },
+  { key: 'requests', label: 'Access', icon: ICONS.requests },
 ]
 
 // Soft accent rotation for department monograms (visual only).
 const DEPT_ACCENTS = ['violet', 'blue', 'emerald', 'amber', 'rose']
+
+// Per-department glyphs (custom duotone, inherit the tile's accent color).
+const DEPT_GLYPHS = {
+  // AI Team — a CPU/neural core
+  'ai-team': (
+    <Ico s={18} f="M9.5 9.5h5v5h-5z"
+      d={['M7 7h10v10H7z', 'M9.5 9.5h5v5h-5z', 'M10 4v3M14 4v3M10 17v3M14 17v3', 'M4 10h3M4 14h3M17 10h3M17 14h3']} />
+  ),
+  // AI Showcases — twin sparkles
+  'ai-showcases': (
+    <Ico s={18} f="M10 3.5l1.5 4.3 4.3 1.5-4.3 1.5L10 15l-1.5-4.2L4.2 9.3l4.3-1.5z"
+      d={['M10 3.5l1.5 4.3 4.3 1.5-4.3 1.5L10 15l-1.5-4.2L4.2 9.3l4.3-1.5z', 'M17 14l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z']} />
+  ),
+  // CeFi — a bank (centralized)
+  cefi: (
+    <Ico s={18} f="M5 10h14v8H5z"
+      d={['M4 10l8-5 8 5', 'M6 10v7M10 10v7M14 10v7M18 10v7', 'M4 19.5h16']} />
+  ),
+  // DeFi — a node network (decentralized)
+  defi: (
+    <Ico s={18} f="M6.6 5.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4z"
+      d={['M6.6 5.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4z', 'M17 7a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4z', 'M11 14.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4z', 'M8.7 8.4 15 9M8.4 9.6 10.4 14.4M16 11.2 12.6 15']} />
+  ),
+  // Sales — a rising trend
+  sales: (
+    <Ico s={18} f="M4 15l5-5 3 3 7-7V19H4z"
+      d={['M4 15l5-5 3 3 7-7', 'M15 6h4v4']} />
+  ),
+  _fallback: (
+    <Ico s={18} f="M12 4l8 4-8 4-8-4z"
+      d={['M12 4l8 4-8 4-8-4z', 'M4 12l8 4 8-4', 'M4 16l8 4 8-4']} />
+  ),
+}
+const deptGlyph = (slug) => DEPT_GLYPHS[slug] || DEPT_GLYPHS._fallback
 
 // Same-origin via the Vite dev proxy; HttpOnly access/refresh cookies ride along.
 const API_BASE = '/api'
@@ -353,9 +500,18 @@ function App() {
   if (!user) {
     return (
       <div className="auth-shell">
+        <GradientDefs />
+        <div className="aurora" aria-hidden="true" />
+        <div className="mesh" aria-hidden="true" />
         <div className="auth-card">
-          <Chip tone="accent">AKA Portal</Chip>
-          <h1>Governed knowledge, one portal.</h1>
+          <div className="auth-brand">
+            <BrandMark size={46} />
+            <div>
+              <strong>AKA</strong>
+              <span>Antier Knowledge Assistant</span>
+            </div>
+          </div>
+          <h1>Governed knowledge,<br />beautifully delivered.</h1>
 
           <div className="hint-users" style={{ marginBottom: 16 }}>
             <button
@@ -398,7 +554,7 @@ function App() {
                   />
                 </label>
                 <button className="primary" type="submit" disabled={busy || !loginUsername.trim() || !loginPassword}>
-                  {busy ? 'Signing in…' : 'Sign In'}
+                  {busy ? 'Signing in…' : <>{G.spark}<span>Sign In</span></>}
                 </button>
               </form>
               {error ? <p className="error">{error}</p> : null}
@@ -450,9 +606,11 @@ function App() {
 
   return (
     <div className="app-shell">
+      <GradientDefs />
+      <div className="app-glow" aria-hidden="true" />
       <aside className="sidebar">
         <div className="brand">
-          <Chip tone="accent">AKA</Chip>
+          <BrandMark size={40} />
           <div>
             <h1>AKA Portal</h1>
             <p className="muted">Antier Knowledge Assistant</p>
@@ -465,7 +623,7 @@ function App() {
             <strong>{user.username}</strong>
             <p className="muted">{user.org_role}</p>
           </div>
-          <button className="link" onClick={logout}>Sign out</button>
+          <button className="link" onClick={logout} aria-label="Sign out">{G.signout}</button>
         </div>
 
         <div className="nav">
@@ -497,7 +655,7 @@ function App() {
                 onClick={() => setDepartment(dept.dept_slug)}
               >
                 <span className={`mono mono-${DEPT_ACCENTS[i % DEPT_ACCENTS.length]}`} aria-hidden="true">
-                  {dept.dept_name?.[0]?.toUpperCase()}
+                  {deptGlyph(dept.dept_slug)}
                 </span>
                 <span className="dept-text">
                   <strong>{dept.dept_name}</strong>
@@ -516,7 +674,7 @@ function App() {
             <p className="muted">{currentDepartment?.dept_name || 'Choose a department to continue'}</p>
           </div>
           <div className="topbar-actions">
-            <button className="ghost" onClick={refreshAll}>Refresh</button>
+            <button className="ghost" onClick={refreshAll}>{G.refresh}<span>Refresh</span></button>
           </div>
         </header>
 
@@ -562,8 +720,8 @@ function App() {
                         </div>
                       </div>
                       <div className="row-actions">
-                        <button className="primary" onClick={() => decideContributor(c.id, 'approve')}>Approve</button>
-                        <button className="danger" onClick={() => decideContributor(c.id, 'reject')}>Reject</button>
+                        <button className="primary" onClick={() => decideContributor(c.id, 'approve')}>{G.check}<span>Approve</span></button>
+                        <button className="danger" onClick={() => decideContributor(c.id, 'reject')}>{G.close}<span>Reject</span></button>
                       </div>
                     </article>
                   ))}
@@ -597,7 +755,7 @@ function App() {
                     </select>
                   </label>
                   <button className="primary" type="submit" disabled={busy || !uploadFile}>
-                    {busy ? 'Uploading…' : 'Upload Document'}
+                    {busy ? 'Uploading…' : <>{G.upload}<span>Upload Document</span></>}
                   </button>
                 </form>
               ) : (
@@ -628,10 +786,10 @@ function App() {
                           className="ghost"
                           onClick={() => startRequest({ documentId: doc.id, text: `Access to ${doc.name}` })}
                         >
-                          Request Access
+                          {G.key}<span>Request Access</span>
                         </button>
                       ) : null}
-                      {role === 'lead' ? <button className="danger" onClick={() => handleDelete(doc.id)}>Delete</button> : null}
+                      {role === 'lead' ? <button className="danger" onClick={() => handleDelete(doc.id)}>{G.trash}<span>Delete</span></button> : null}
                     </div>
                   </article>
                 ))}
@@ -653,7 +811,7 @@ function App() {
 
               {messages.map((msg, index) => (
                 <div key={index} className={`chat-msg chat-msg-${msg.role}`}>
-                  <div className="chat-avatar">{msg.role === 'user' ? (user.username?.[0]?.toUpperCase() || 'U') : 'AKA'}</div>
+                  <div className="chat-avatar">{msg.role === 'user' ? (user.username?.[0]?.toUpperCase() || 'U') : <AssistantMark />}</div>
                   <div className="chat-bubble">
                     <p className={msg.error ? 'error' : undefined}>{msg.text}</p>
                     {msg.sources && msg.sources.length ? (
@@ -669,7 +827,7 @@ function App() {
                     ) : null}
                     {msg.insufficient ? (
                       <button className="ghost" onClick={() => startRequest({ text: msg.question })}>
-                        Request this information
+                        {G.key}<span>Request this information</span>
                       </button>
                     ) : null}
                   </div>
@@ -678,7 +836,7 @@ function App() {
 
               {chatLoading ? (
                 <div className="chat-msg chat-msg-assistant">
-                  <div className="chat-avatar">AKA</div>
+                  <div className="chat-avatar"><AssistantMark /></div>
                   <div className="chat-bubble">
                     <span className="chat-typing"><i /><i /><i /></span>
                   </div>
@@ -700,7 +858,7 @@ function App() {
                 placeholder={`Ask a question about ${currentDepartment?.dept_name || 'this department'}…`}
               />
               <button className="primary" type="submit" disabled={chatLoading || !chatQuestion.trim()}>
-                {chatLoading ? 'Thinking…' : 'Send'}
+                {chatLoading ? 'Thinking…' : <>{G.send}<span>Send</span></>}
               </button>
             </form>
             {chatError ? <p className="error chat-error">{chatError}</p> : null}
@@ -730,7 +888,7 @@ function App() {
                   </select>
                 </label>
                 <button className="primary" type="submit" disabled={!requestText.trim() || !requestReason.trim()}>
-                  Submit Request
+                  {G.key}<span>Submit Request</span>
                 </button>
               </form>
               {requestStatus ? <p className="muted">{requestStatus}</p> : null}
@@ -752,8 +910,8 @@ function App() {
                         </div>
                       </div>
                       <div className="row-actions">
-                        <button className="primary" onClick={() => approveRequest(item.id)}>Approve</button>
-                        <button className="danger" onClick={() => rejectRequest(item.id)}>Reject</button>
+                        <button className="primary" onClick={() => approveRequest(item.id)}>{G.check}<span>Approve</span></button>
+                        <button className="danger" onClick={() => rejectRequest(item.id)}>{G.close}<span>Reject</span></button>
                       </div>
                     </article>
                   ))}
