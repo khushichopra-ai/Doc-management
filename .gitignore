@@ -1,5 +1,6 @@
 # --- Python ---
 venv/
+.venv/
 __pycache__/
 *.py[cod]
 *.sqlite3
@@ -16,3 +17,6 @@ frontend/dist/
 # --- Models / caches ---
 .cache/
 *.log
+
+# --- OS ---
+.DS_Store
