@@ -1,4 +1,12 @@
-# Docker is used ONLY for Qdrant (per architecture spec).
+# ============================================================
+# AKA (Antier Knowledge Assistant)
+#   app    : ONE image — React SPA (nginx) + Django API together
+#   qdrant : vector store (official image)
+#
+#   Start:   docker compose up --build
+#   Open:    http://localhost:8080        (the app)
+#   Admin:   http://localhost:8000/admin/ (direct Django)
+# ============================================================
 services:
   qdrant:
     image: qdrant/qdrant:latest
@@ -9,6 +17,23 @@ services:
       - "6334:6334"   # gRPC
     volumes:
       - qdrant_storage:/qdrant/storage
+
+  app:
+    build: .
+    container_name: aka_app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      QDRANT_HOST: qdrant          # talk to the qdrant service
+      QDRANT_PORT: "6333"
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,app"
+    depends_on:
+      - qdrant
+    ports:
+      - "8080:80"     # the app (nginx -> SPA + /api proxy)
+      - "8000:8000"   # direct Django API / admin
 
 volumes:
   qdrant_storage:

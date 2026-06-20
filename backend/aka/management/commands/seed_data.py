@@ -24,12 +24,13 @@ class Command(BaseCommand):
 
         department_objects = {}
         for name, payload in departments.items():
-            department_objects[name], _ = Department.objects.get_or_create(
+            # Match on the unique name only (migrations may pre-seed departments
+            # with a different slug); update slug/type via defaults so we never
+            # try to INSERT a duplicate name.
+            department_objects[name], _ = Department.objects.update_or_create(
                 name=name,
-                slug=payload["slug"],
                 defaults=payload,
             )
-            Department.objects.filter(pk=department_objects[name].pk).update(**payload)
 
         # The single account-level Lead and system owner. Created only via seed
         # (no Lead registration). Approves/rejects contributor sign-ups and holds
