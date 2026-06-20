@@ -1,0 +1,18 @@
+# --- Python ---
+venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+
+# --- Django ---
+backend/media/
+backend/staticfiles/
+
+# --- Node / Frontend ---
+node_modules/
+frontend/dist/
+
+# --- Models / caches ---
+.cache/
+*.log

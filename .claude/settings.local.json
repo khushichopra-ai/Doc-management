@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//tmp/claude-1000/-home-user-FileManagement/**)",
+      "Read(//tmp/**)",
+      "Bash(python -c \"import django,rest_framework,rest_framework_simplejwt,qdrant_client,langchain,sentence_transformers,fitz,docx,openpyxl,google.generativeai as g; import corsheaders, dotenv; print\\('django',django.get_version\\(\\)\\); print\\('drf',rest_framework.VERSION\\); print\\('langchain',langchain.__version__\\); print\\('all key imports OK'\\)\")"
+    ]
+  }
+}
