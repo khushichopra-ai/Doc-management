@@ -8,15 +8,15 @@
 #   Admin:   http://localhost:8000/admin/ (direct Django)
 # ============================================================
 services:
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: aka_qdrant
-    restart: unless-stopped
-    ports:
-      - "6333:6333"   # REST / dashboard
-      - "6334:6334"   # gRPC
-    volumes:
-      - qdrant_storage:/qdrant/storage
+  # qdrant:
+  #   image: qdrant/qdrant:latest
+  #   container_name: aka_qdrant
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6333:6333"   # REST / dashboard
+  #     - "6334:6334"   # gRPC
+  #   volumes:
+  #     - qdrant_storage:/qdrant/storage
 
   app:
     build: .
@@ -31,11 +31,11 @@ services:
       # POC: reachable via localhost, 127.0.0.1, LAN IP, or hostname. Django rejects
       # any Host not listed with a 400 "Bad Request", so allow all for local demos.
       DJANGO_ALLOWED_HOSTS: "*"
-    depends_on:
-      - qdrant
+    # depends_on:
+    #   - qdrant
     ports:
       - "8080:80"     # the app (nginx -> SPA + /api proxy)
       - "8000:8000"   # direct Django API / admin
 
-volumes:
-  qdrant_storage:
+# volumes:
+#   qdrant_storage:
