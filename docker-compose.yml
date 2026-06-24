@@ -5,9 +5,7 @@ services:
       - "8001:8001"
     env_file: .env
     environment:
-      QDRANT_HOST: host.docker.internal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      QDRANT_HOST: qdrant
     volumes:
       - ./backend/db.sqlite3:/app/db.sqlite3
 
